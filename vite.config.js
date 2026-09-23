@@ -1,0 +1,44 @@
+import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite'
+import { VitePWA } from 'vite-plugin-pwa'
+
+// https://vite.dev/config/
+export default defineConfig({
+  // One ~190 kB gzipped bundle (mostly supabase-js + Leaflet), precached by the service worker.
+  build: { chunkSizeWarningLimit: 800 },
+  plugins: [
+    react(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['favicon.ico', 'apple-touch-icon-180x180.png', 'logo.svg'],
+      manifest: {
+        name: 'Coffee Shop Tracker',
+        short_name: 'Coffee',
+        description: 'Log and rate coffee shop visits',
+        theme_color: '#6b3f24',
+        background_color: '#faf6f1',
+        display: 'standalone',
+        start_url: '/',
+        icons: [
+          { src: 'pwa-64x64.png', sizes: '64x64', type: 'image/png' },
+          { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },
+          { src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png' },
+          { src: 'maskable-icon-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+        ],
+      },
+      workbox: {
+        // Supabase and Nominatim are always fetched live; only map tiles get a runtime cache.
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/[abc]?\.?tile\.openstreetmap\.org\/.*/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'osm-tiles',
+              expiration: { maxEntries: 500, maxAgeSeconds: 60 * 60 * 24 * 30 },
+            },
+          },
+        ],
+      },
+    }),
+  ],
+})
