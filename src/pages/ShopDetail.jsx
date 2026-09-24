@@ -6,6 +6,7 @@ import StarRating from '../components/StarRating'
 import { EmptyState, ErrorBanner, Spinner } from '../components/Status'
 import { useShops } from '../data/shopsContext'
 import { formatDate } from '../lib/dates'
+import { googleMapsUrl } from '../lib/google'
 import { CATEGORIES, formatRating, visitOverall } from '../lib/ratings'
 
 function newestFirst(a, b) {
@@ -92,9 +93,14 @@ export default function ShopDetail() {
           </div>
         </div>
         {shop.visitCount > 0 && <CategoryBreakdown averages={shop.categories} />}
-        <Link to={`/visits/new?shop=${shop.id}`} className="btn btn-primary btn-block">
-          Log a visit here
-        </Link>
+        <div className="button-row">
+          <Link to={`/visits/new?shop=${shop.id}`} className="btn btn-primary">
+            Log a visit here
+          </Link>
+          <a href={googleMapsUrl(shop)} target="_blank" rel="noreferrer" className="btn">
+            Open in Google Maps
+          </a>
+        </div>
       </section>
 
       <h2 className="section-title">Visits</h2>

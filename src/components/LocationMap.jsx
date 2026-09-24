@@ -1,43 +1,40 @@
-import L from 'leaflet'
+import { AdvancedMarker, ColorScheme, Map as GoogleMap, useMap } from '@vis.gl/react-google-maps'
 import { useEffect } from 'react'
-import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from 'react-leaflet'
-
-const pinIcon = L.divIcon({
-  className: 'pin-icon',
-  html: '<span></span>',
-  iconSize: [28, 28],
-  iconAnchor: [14, 28],
-})
+import { GOOGLE_MAP_ID } from '../lib/google'
 
 function Recenter({ lat, lng }) {
-  const map = useMap()
+  const map = useMap('location-map')
   useEffect(() => {
-    map.setView([lat, lng], Math.max(map.getZoom(), 16))
+    map?.panTo({ lat, lng })
   }, [lat, lng, map])
-  return null
-}
-
-function TapToMove({ onMove }) {
-  useMapEvents({ click: (e) => onMove(e.latlng) })
   return null
 }
 
 /** Small map with a pin the user can drag (or tap to move) to fine-tune a shop's location. */
 export default function LocationMap({ lat, lng, onMove }) {
   return (
-    <MapContainer center={[lat, lng]} zoom={17} className="location-map" scrollWheelZoom={false}>
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      <Marker
-        position={[lat, lng]}
-        icon={pinIcon}
-        draggable
-        eventHandlers={{ dragend: (e) => onMove(e.target.getLatLng()) }}
-      />
-      <Recenter lat={lat} lng={lng} />
-      <TapToMove onMove={onMove} />
-    </MapContainer>
+    <div className="location-map">
+      <GoogleMap
+        id="location-map"
+        mapId={GOOGLE_MAP_ID}
+        defaultCenter={{ lat, lng }}
+        defaultZoom={18}
+        gestureHandling="cooperative"
+        disableDefaultUI
+        zoomControl
+        clickableIcons={false}
+        colorScheme={ColorScheme.FOLLOW_SYSTEM}
+        onClick={(e) => e.detail.latLng && onMove(e.detail.latLng)}
+      >
+        <AdvancedMarker
+          position={{ lat, lng }}
+          draggable
+          onDragEnd={(e) => e.latLng && onMove({ lat: e.latLng.lat(), lng: e.latLng.lng() })}
+        >
+          <span className="drop-pin" />
+        </AdvancedMarker>
+        <Recenter lat={lat} lng={lng} />
+      </GoogleMap>
+    </div>
   )
 }

@@ -7,10 +7,10 @@ export async function fetchShops() {
   return data
 }
 
-export async function createShop({ name, address, lat, lng }) {
+export async function createShop({ name, address, lat, lng, google_place_id }) {
   const { data, error } = await supabase
     .from('shops')
-    .insert({ name, address: address || null, lat, lng })
+    .insert({ name, address: address || null, lat, lng, google_place_id: google_place_id || null })
     .select()
     .single()
   if (error) throw error

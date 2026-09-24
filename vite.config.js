@@ -4,7 +4,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
-  // One ~190 kB gzipped bundle (mostly supabase-js + Leaflet), precached by the service worker.
+  // One ~190 kB gzipped bundle (mostly supabase-js + the Google Maps wrapper), precached by the service worker.
   build: { chunkSizeWarningLimit: 800 },
   plugins: [
     react(),
@@ -24,19 +24,6 @@ export default defineConfig({
           { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },
           { src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png' },
           { src: 'maskable-icon-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
-        ],
-      },
-      workbox: {
-        // Supabase and Nominatim are always fetched live; only map tiles get a runtime cache.
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/[abc]?\.?tile\.openstreetmap\.org\/.*/,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'osm-tiles',
-              expiration: { maxEntries: 500, maxAgeSeconds: 60 * 60 * 24 * 30 },
-            },
-          },
         ],
       },
     }),

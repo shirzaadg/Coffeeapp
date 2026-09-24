@@ -27,6 +27,9 @@ create table if not exists visits (
 
 create index if not exists visits_shop_id_idx on visits(shop_id);
 
+-- Google Places ID for shops picked from Google search (null for hand-dropped pins).
+alter table shops add column if not exists google_place_id text;
+
 -- No auth in v1: the anon key can read and insert, nothing else.
 -- (Editing/deleting is out of scope, so update/delete stay blocked.)
 -- Newer Supabase projects don't auto-grant table access to the API roles.
