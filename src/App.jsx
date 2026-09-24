@@ -5,10 +5,12 @@ import ShopsProvider from './data/ShopsProvider'
 import { GOOGLE_MAP_ID, GOOGLE_MAPS_API_KEY } from './lib/google'
 import { isSupabaseConfigured } from './lib/supabase'
 import AddShop from './pages/AddShop'
-import LogVisit from './pages/LogVisit'
+import EditShop from './pages/EditShop'
+import EditVisit from './pages/EditVisit'
 import MapPage from './pages/MapPage'
 import ShopDetail from './pages/ShopDetail'
 import ShopList from './pages/ShopList'
+import VisitForm from './pages/VisitForm'
 
 const REQUIRED_ENV = {
   VITE_SUPABASE_URL: isSupabaseConfigured,
@@ -62,7 +64,9 @@ export default function App() {
                 <Route path="/map" element={<MapPage />} />
                 <Route path="/shops/new" element={<AddShop />} />
                 <Route path="/shops/:id" element={<ShopDetail />} />
-                <Route path="/visits/new" element={<LogVisit />} />
+                <Route path="/shops/:id/edit" element={<EditShop />} />
+                <Route path="/visits/new" element={<VisitForm />} />
+                <Route path="/visits/:id/edit" element={<EditVisit />} />
                 <Route path="*" element={<ShopList />} />
               </Routes>
             </Main>

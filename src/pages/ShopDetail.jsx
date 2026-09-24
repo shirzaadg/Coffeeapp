@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import CategoryBreakdown from '../components/CategoryBreakdown'
 import PageHeader from '../components/PageHeader'
@@ -5,6 +6,7 @@ import RatingBadge from '../components/RatingBadge'
 import StarRating from '../components/StarRating'
 import { EmptyState, ErrorBanner, Spinner } from '../components/Status'
 import { useShops } from '../data/shopsContext'
+import { deleteVisit } from '../lib/api'
 import { formatDate } from '../lib/dates'
 import { googleMapsUrl } from '../lib/google'
 import { CATEGORIES, formatRating, visitOverall } from '../lib/ratings'
@@ -14,6 +16,25 @@ function newestFirst(a, b) {
 }
 
 function VisitCard({ visit }) {
+  const { reload } = useShops()
+  const [deleting, setDeleting] = useState(false)
+  const [error, setError] = useState(null)
+
+  async function handleDelete() {
+    if (!window.confirm(`Delete ${visit.visitor_name}’s visit from ${formatDate(visit.visit_date)}? This can’t be undone.`)) {
+      return
+    }
+    setDeleting(true)
+    setError(null)
+    try {
+      await deleteVisit(visit)
+      await reload()
+    } catch (err) {
+      setError(err.message || 'Could not delete the visit')
+      setDeleting(false)
+    }
+  }
+
   return (
     <article className="card visit-card">
       <header className="visit-head">
@@ -49,6 +70,19 @@ function VisitCard({ visit }) {
           <img src={visit.photo_url} alt={`Photo from ${visit.visitor_name}’s visit`} loading="lazy" />
         </a>
       )}
+      {error && (
+        <p className="error-text" role="alert">
+          {error}
+        </p>
+      )}
+      <div className="visit-actions">
+        <Link to={`/visits/${visit.id}/edit`} className="btn btn-small">
+          Edit
+        </Link>
+        <button type="button" className="btn btn-small btn-danger-text" onClick={handleDelete} disabled={deleting}>
+          {deleting ? 'Deleting…' : 'Delete'}
+        </button>
+      </div>
     </article>
   )
 }
@@ -80,7 +114,15 @@ export default function ShopDetail() {
 
   return (
     <div className="page">
-      <PageHeader title={shop.name} back="/" />
+      <PageHeader
+        title={shop.name}
+        back="/"
+        action={
+          <Link to={`/shops/${shop.id}/edit`} className="btn btn-small">
+            Edit
+          </Link>
+        }
+      />
       <section className="card shop-summary">
         {shop.address && <p className="muted small">{shop.address}</p>}
         <div className="shop-summary-rating">

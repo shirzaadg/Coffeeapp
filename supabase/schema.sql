@@ -30,11 +30,10 @@ create index if not exists visits_shop_id_idx on visits(shop_id);
 -- Google Places ID for shops picked from Google search (null for hand-dropped pins).
 alter table shops add column if not exists google_place_id text;
 
--- No auth in v1: the anon key can read and insert, nothing else.
--- (Editing/deleting is out of scope, so update/delete stay blocked.)
+-- No auth: anyone with the app (the anon key) can read, add, edit and delete.
 -- Newer Supabase projects don't auto-grant table access to the API roles.
 grant usage on schema public to anon;
-grant select, insert on table shops, visits to anon;
+grant select, insert, update, delete on table shops, visits to anon;
 
 alter table shops enable row level security;
 alter table visits enable row level security;
@@ -48,6 +47,15 @@ create policy "anon read visits" on visits for select to anon using (true);
 drop policy if exists "anon insert visits" on visits;
 create policy "anon insert visits" on visits for insert to anon with check (true);
 
+drop policy if exists "anon update shops" on shops;
+create policy "anon update shops" on shops for update to anon using (true) with check (true);
+drop policy if exists "anon delete shops" on shops;
+create policy "anon delete shops" on shops for delete to anon using (true);
+drop policy if exists "anon update visits" on visits;
+create policy "anon update visits" on visits for update to anon using (true) with check (true);
+drop policy if exists "anon delete visits" on visits;
+create policy "anon delete visits" on visits for delete to anon using (true);
+
 -- Public bucket for visit photos.
 insert into storage.buckets (id, name, public)
 values ('visit-photos', 'visit-photos', true)
@@ -59,3 +67,6 @@ create policy "anon upload visit photos" on storage.objects
 drop policy if exists "anon read visit photos" on storage.objects;
 create policy "anon read visit photos" on storage.objects
   for select to anon using (bucket_id = 'visit-photos');
+drop policy if exists "anon delete visit photos" on storage.objects;
+create policy "anon delete visit photos" on storage.objects
+  for delete to anon using (bucket_id = 'visit-photos');

@@ -19,16 +19,16 @@ Mobile-first PWA for two people (no auth, no users table) to log coffee shop vis
 
 - **Data loading**: `src/data/ShopsProvider.jsx` fetches *all* shops with nested visits in one query (`shops.select('*, visits(*)')`) and exposes `{ shops, loading, error, reload }` through `useShops()` (`src/data/shopsContext.js`). Every page reads from this context; after any write, call `await reload()` rather than patching local state. Each shop is enriched with `average`, `categories`, `visitCount`.
 - **Ratings are derived, never stored**: `src/lib/ratings.js` is the single source for category list (`CATEGORIES` — coffee/atmosphere required, food/service optional), per-visit overall (mean of non-null categories), shop average (mean of visit overalls), and `ratingColor()` which is shared by the list badges and map pins so colors stay consistent. Add/rename a rating category there and in `supabase/schema.sql`.
-- **Writes** go through `src/lib/api.js` (`createShop`, `createVisit`, `uploadPhoto`). Photos are downscaled client-side to a ~1600px JPEG (`src/lib/image.js`) and uploaded to the public `visit-photos` bucket at `<shopId>/<uuid>.jpg`; the public URL is stored in `visits.photo_url`.
+- **Writes** go through `src/lib/api.js`. RLS turns a disallowed update/delete into "0 rows" rather than an error, so update/delete helpers `.select()` the affected rows and throw if none came back (`expectRows`). Deleting a visit/shop or replacing a photo also removes the old files from storage (best-effort). Photos are downscaled client-side to a ~1600px JPEG (`src/lib/image.js`) and uploaded to the public `visit-photos` bucket at `<shopId>/<uuid>.jpg`; the public URL is stored in `visits.photo_url`.
 - **Places search** (`src/lib/places.js`) uses the Places API (New) JS classes (`AutocompleteSuggestion`, `Place.searchNearby`) — not the legacy `Autocomplete` widget. Typeahead is debounced and uses one `AutocompleteSessionToken` per search→pick cycle for billing. "Use my location" runs a 150 m nearby search for cafés so the user can pick the one they're in, with a plain-pin fallback. Shops store `google_place_id` (null for hand-dropped pins), used for the "Open in Google Maps" link. Google's terms require Places results to be shown with Google attribution and on a Google map, which is why Leaflet/OSM was removed entirely.
 - **Maps**: `AdvancedMarker` needs a Map ID (`VITE_GOOGLE_MAP_ID`). Each `<GoogleMap>` has an `id` so `useMap(id)` targets the right instance. `MapsStatus` shows an error when the key is rejected.
 - **New-shop UI** (`src/components/NewShopFields.jsx`) is shared by the standalone Add Shop page and the inline "+ Add a new shop" option in Log Visit. Its `onChange` must be a React state setter because it's called with updater functions (async lookups must not clobber what the user typed).
 - **Scrolling**: the scroll container is `<main className="app-main">`, not the window (fixed bottom tab bar layout). `Main` in `App.jsx` resets its scroll on route change. The map page absolutely fills `main`.
-- **Routes**: `/` list, `/map`, `/shops/new`, `/shops/:id`, `/visits/new?shop=<id>`. BrowserRouter is used, so hosting needs SPA rewrites (`vercel.json`, `public/_redirects`).
+- **Routes**: `/` list, `/map`, `/shops/new`, `/shops/:id`, `/shops/:id/edit`, `/visits/new?shop=<id>`, `/visits/:id/edit`. `VisitForm` handles both new and edit (`existing` prop); `NewShopFields` is reused by the edit-shop page. BrowserRouter is used, so hosting needs SPA rewrites (`vercel.json`, `public/_redirects`).
 
 ## Supabase
 
-Schema, RLS policies and storage bucket are in `supabase/schema.sql` (run manually in the Supabase SQL editor; there is no migration tooling). The anon role can only `select` and `insert` — editing/deleting visits is out of scope for v1, so adding those features requires new RLS policies too.
+Schema, RLS policies and storage bucket are in `supabase/schema.sql` (run manually in the Supabase SQL editor; there is no migration tooling). With no auth, the anon role has select/insert/update/delete on both tables (and insert/select/delete on the photo bucket) — anyone with the site URL can edit or delete.
 
 ## PWA
 
@@ -36,4 +36,4 @@ Configured in `vite.config.js`. Icons in `public/` were generated from `public/l
 
 ## Out of scope for v1
 
-Auth/accounts, editing or deleting visits, offline support beyond basic PWA caching.
+Auth/accounts, offline support beyond basic PWA caching.

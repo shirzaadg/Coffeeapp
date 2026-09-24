@@ -5,7 +5,7 @@ import PageHeader from '../components/PageHeader'
 import StarRating from '../components/StarRating'
 import { Spinner } from '../components/Status'
 import { useShops } from '../data/shopsContext'
-import { createShop, createVisit, uploadPhoto } from '../lib/api'
+import { createShop, createVisit, removePhotos, updateVisit, uploadPhoto } from '../lib/api'
 import { todayISO } from '../lib/dates'
 import { EMPTY_SHOP, validateNewShop } from '../lib/shops'
 import { CATEGORIES, formatRating } from '../lib/ratings'
@@ -31,19 +31,25 @@ function saveName(name) {
 
 const EMPTY_RATINGS = Object.fromEntries(CATEGORIES.map((c) => [c.key, null]))
 
-export default function LogVisit() {
+function ratingsOf(visit) {
+  return Object.fromEntries(CATEGORIES.map((c) => [c.key, visit[c.key] == null ? null : Number(visit[c.key])]))
+}
+
+/** Log a new visit, or edit `existing` (a visit row) when passed. */
+export default function VisitForm({ existing }) {
   const { shops, loading, reload } = useShops()
   const [params] = useSearchParams()
   const navigate = useNavigate()
 
-  const [shopChoice, setShopChoice] = useState(params.get('shop') ?? '')
+  const [shopChoice, setShopChoice] = useState(existing?.shop_id ?? params.get('shop') ?? '')
   const [newShop, setNewShop] = useState(EMPTY_SHOP)
-  const [visitorName, setVisitorName] = useState(readSavedName)
-  const [visitDate, setVisitDate] = useState(todayISO)
-  const [drink, setDrink] = useState('')
-  const [notes, setNotes] = useState('')
-  const [ratings, setRatings] = useState(EMPTY_RATINGS)
-  const [photo, setPhoto] = useState(null) // { file, previewUrl }
+  const [visitorName, setVisitorName] = useState(() => existing?.visitor_name ?? readSavedName())
+  const [visitDate, setVisitDate] = useState(() => existing?.visit_date ?? todayISO())
+  const [drink, setDrink] = useState(existing?.drink_ordered ?? '')
+  const [notes, setNotes] = useState(existing?.notes ?? '')
+  const [ratings, setRatings] = useState(() => (existing ? ratingsOf(existing) : EMPTY_RATINGS))
+  // { file, previewUrl } for a newly picked photo; { previewUrl } alone for the visit's saved photo.
+  const [photo, setPhoto] = useState(existing?.photo_url ? { previewUrl: existing.photo_url } : null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
 
@@ -56,7 +62,7 @@ export default function LogVisit() {
   )
 
   function choosePhoto(file) {
-    if (photo) URL.revokeObjectURL(photo.previewUrl)
+    if (photo?.file) URL.revokeObjectURL(photo.previewUrl)
     setPhoto(file ? { file, previewUrl: URL.createObjectURL(file) } : null)
   }
 
@@ -95,8 +101,8 @@ export default function LogVisit() {
         setShopChoice(id)
         setNewShop(EMPTY_SHOP)
       }
-      const photoUrl = photo ? await uploadPhoto(id, photo.file) : null
-      await createVisit({
+      const photoUrl = photo?.file ? await uploadPhoto(id, photo.file) : (photo?.previewUrl ?? null)
+      const fields = {
         shop_id: id,
         visitor_name: visitorName.trim(),
         visit_date: visitDate,
@@ -104,8 +110,15 @@ export default function LogVisit() {
         notes: notes.trim() || null,
         photo_url: photoUrl,
         ...ratings,
-      })
-      saveName(visitorName.trim())
+      }
+      if (existing) {
+        await updateVisit(existing.id, fields)
+        // Replaced or removed photo: clean up the old file.
+        if (existing.photo_url && existing.photo_url !== photoUrl) await removePhotos([existing.photo_url])
+      } else {
+        await createVisit(fields)
+        saveName(visitorName.trim())
+      }
       await reload()
       navigate(`/shops/${id}`, { replace: true })
     } catch (err) {
@@ -119,7 +132,10 @@ export default function LogVisit() {
 
   return (
     <div className="page">
-      <PageHeader title="Log a visit" />
+      <PageHeader
+        title={existing ? 'Edit visit' : 'Log a visit'}
+        back={existing ? `/shops/${existing.shop_id}` : undefined}
+      />
       <form className="form" onSubmit={handleSubmit} noValidate>
         {shops.length > 0 && (
           <label className="field">
@@ -206,7 +222,7 @@ export default function LogVisit() {
             </div>
           ) : (
             <label className="btn btn-ghost file-btn">
-              📷 Add a photo
+              📷 {existing?.photo_url ? 'Add a new photo' : 'Add a photo'}
               <input type="file" accept="image/*" onChange={(e) => choosePhoto(e.target.files?.[0] ?? null)} hidden />
             </label>
           )}
@@ -218,7 +234,7 @@ export default function LogVisit() {
           </p>
         )}
         <button type="submit" className="btn btn-primary btn-block" disabled={saving}>
-          {saving ? 'Saving…' : 'Save visit'}
+          {saving ? 'Saving…' : existing ? 'Save changes' : 'Save visit'}
         </button>
       </form>
     </div>

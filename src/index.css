@@ -222,6 +222,24 @@ code {
   width: 100%;
 }
 
+.btn-danger {
+  background: transparent;
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.btn-danger-text {
+  border-color: transparent;
+  background: transparent;
+  color: var(--danger);
+}
+
+.danger-zone {
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
 .form {
   display: flex;
   flex-direction: column;
@@ -545,6 +563,13 @@ fieldset {
 .visit-notes {
   margin: 0;
   white-space: pre-wrap;
+}
+
+.visit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-top: -2px;
 }
 
 .visit-photo img {
