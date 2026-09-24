@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { getCurrentPosition } from '../lib/geo'
 import { autocomplete, cafesNear, placeFromSuggestion } from '../lib/places'
 import LocationMap from './LocationMap'
+import MapsStatus from './MapsStatus'
 
 /**
  * Name + location fields for a new shop, backed by Google Places. `onChange` must be a
@@ -104,6 +105,7 @@ export default function NewShopFields({ value, onChange }) {
 
   return (
     <div className="new-shop">
+      <MapsStatus />
       <div className="field">
         <span className="field-label">Find the café</span>
         <div className="search-box">

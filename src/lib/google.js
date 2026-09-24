@@ -10,3 +10,17 @@ export function googleMapsUrl(shop) {
   if (shop.google_place_id) params.set('query_place_id', shop.google_place_id)
   return `https://www.google.com/maps/search/?${params}`
 }
+
+// Google calls this global when it rejects the key (wrong website, API not enabled, billing off).
+// @vis.gl/react-google-maps doesn't surface it, so track it here for <MapsStatus>.
+let authFailed = false
+const authListeners = new Set()
+window.gm_authFailure = () => {
+  authFailed = true
+  authListeners.forEach((notify) => notify())
+}
+export function subscribeAuthFailure(notify) {
+  authListeners.add(notify)
+  return () => authListeners.delete(notify)
+}
+export const getAuthFailed = () => authFailed
