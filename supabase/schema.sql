@@ -29,6 +29,10 @@ create index if not exists visits_shop_id_idx on visits(shop_id);
 
 -- No auth in v1: the anon key can read and insert, nothing else.
 -- (Editing/deleting is out of scope, so update/delete stay blocked.)
+-- Newer Supabase projects don't auto-grant table access to the API roles.
+grant usage on schema public to anon;
+grant select, insert on table shops, visits to anon;
+
 alter table shops enable row level security;
 alter table visits enable row level security;
 
