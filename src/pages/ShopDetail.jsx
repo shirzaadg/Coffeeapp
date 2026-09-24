@@ -98,7 +98,7 @@ export default function ShopDetail() {
             Log a visit here
           </Link>
           <a href={googleMapsUrl(shop)} target="_blank" rel="noreferrer" className="btn">
-            Open in Google Maps
+            Google Maps ↗
           </a>
         </div>
       </section>
