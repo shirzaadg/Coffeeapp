@@ -1,4 +1,5 @@
--- Run this once in the Supabase dashboard: SQL Editor → New query → paste → Run.
+-- Run in the Supabase dashboard: SQL Editor → New query → paste → Run.
+-- Safe to run more than once.
 
 create table if not exists shops (
   id uuid primary key default gen_random_uuid(),
@@ -31,9 +32,13 @@ create index if not exists visits_shop_id_idx on visits(shop_id);
 alter table shops enable row level security;
 alter table visits enable row level security;
 
+drop policy if exists "anon read shops" on shops;
 create policy "anon read shops" on shops for select to anon using (true);
+drop policy if exists "anon insert shops" on shops;
 create policy "anon insert shops" on shops for insert to anon with check (true);
+drop policy if exists "anon read visits" on visits;
 create policy "anon read visits" on visits for select to anon using (true);
+drop policy if exists "anon insert visits" on visits;
 create policy "anon insert visits" on visits for insert to anon with check (true);
 
 -- Public bucket for visit photos.
@@ -41,7 +46,9 @@ insert into storage.buckets (id, name, public)
 values ('visit-photos', 'visit-photos', true)
 on conflict (id) do nothing;
 
+drop policy if exists "anon upload visit photos" on storage.objects;
 create policy "anon upload visit photos" on storage.objects
   for insert to anon with check (bucket_id = 'visit-photos');
+drop policy if exists "anon read visit photos" on storage.objects;
 create policy "anon read visit photos" on storage.objects
   for select to anon using (bucket_id = 'visit-photos');
