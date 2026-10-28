@@ -30,6 +30,10 @@ create index if not exists visits_shop_id_idx on visits(shop_id);
 -- Google Places ID for shops picked from Google search (null for hand-dropped pins).
 alter table shops add column if not exists google_place_id text;
 
+-- Value-for-money rating and what was actually paid (both optional).
+alter table visits add column if not exists rating_value numeric(2,1);
+alter table visits add column if not exists price_paid numeric(6,2);
+
 -- No auth: anyone with the app (the anon key) can read, add, edit and delete.
 -- Newer Supabase projects don't auto-grant table access to the API roles.
 grant usage on schema public to anon;

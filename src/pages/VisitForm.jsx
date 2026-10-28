@@ -8,7 +8,7 @@ import { useShops } from '../data/shopsContext'
 import { createShop, createVisit, removePhotos, updateVisit, uploadPhoto } from '../lib/api'
 import { todayISO } from '../lib/dates'
 import { EMPTY_SHOP, validateNewShop } from '../lib/shops'
-import { CATEGORIES, formatRating } from '../lib/ratings'
+import { CATEGORIES, formatRating, parsePrice } from '../lib/ratings'
 
 const NEW_SHOP = '__new'
 const NAME_KEY = 'coffee.visitorName'
@@ -46,6 +46,7 @@ export default function VisitForm({ existing }) {
   const [visitorName, setVisitorName] = useState(() => existing?.visitor_name ?? readSavedName())
   const [visitDate, setVisitDate] = useState(() => existing?.visit_date ?? todayISO())
   const [drink, setDrink] = useState(existing?.drink_ordered ?? '')
+  const [price, setPrice] = useState(existing?.price_paid == null ? '' : Number(existing.price_paid).toFixed(2))
   const [notes, setNotes] = useState(existing?.notes ?? '')
   const [ratings, setRatings] = useState(() => (existing ? ratingsOf(existing) : EMPTY_RATINGS))
   // { file, previewUrl } for a newly picked photo; { previewUrl } alone for the visit's saved photo.
@@ -76,6 +77,7 @@ export default function VisitForm({ existing }) {
     if (!visitDate) return 'Add the visit date.'
     const missing = CATEGORIES.filter((c) => c.required && ratings[c.key] == null).map((c) => c.label)
     if (missing.length) return `Rate ${missing.join(' and ')}.`
+    if (Number.isNaN(parsePrice(price))) return 'Price paid should be a number, like 5.50.'
     return null
   }
 
@@ -107,6 +109,7 @@ export default function VisitForm({ existing }) {
         visitor_name: visitorName.trim(),
         visit_date: visitDate,
         drink_ordered: drink.trim() || null,
+        price_paid: parsePrice(price),
         notes: notes.trim() || null,
         photo_url: photoUrl,
         ...ratings,
@@ -182,10 +185,25 @@ export default function VisitForm({ existing }) {
           </label>
         </div>
 
-        <label className="field">
-          <span className="field-label">Drink ordered</span>
-          <input value={drink} onChange={(e) => setDrink(e.target.value)} placeholder="e.g. Oat flat white" />
-        </label>
+        <div className="field-row price-row">
+          <label className="field">
+            <span className="field-label">Drink ordered</span>
+            <input value={drink} onChange={(e) => setDrink(e.target.value)} placeholder="e.g. Oat flat white" />
+          </label>
+          <label className="field">
+            <span className="field-label">Price paid</span>
+            <span className="money-input">
+              <span aria-hidden="true">$</span>
+              <input
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                inputMode="decimal"
+                placeholder="Optional"
+                aria-label="Price paid in dollars"
+              />
+            </span>
+          </label>
+        </div>
 
         <fieldset className="ratings">
           <legend className="field-label">Ratings</legend>

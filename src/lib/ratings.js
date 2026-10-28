@@ -2,12 +2,15 @@
 
 export const CATEGORIES = [
   { key: 'rating_coffee', label: 'Coffee', required: true },
-  { key: 'rating_atmosphere', label: 'Atmosphere', required: true },
+  // `short` is used where five categories share one row on a phone.
+  { key: 'rating_atmosphere', label: 'Atmosphere', short: 'Atmos.', required: true },
   { key: 'rating_food', label: 'Food', required: false },
   { key: 'rating_service', label: 'Service', required: false },
+  // "Was it worth the price?" — the judgement; price_paid is the raw fact alongside it.
+  { key: 'rating_value', label: 'Value', required: false },
 ]
 
-function mean(nums) {
+export function mean(nums) {
   return nums.length ? nums.reduce((a, b) => a + b, 0) / nums.length : null
 }
 
@@ -29,6 +32,21 @@ export function categoryAverages(visits) {
   return Object.fromEntries(
     CATEGORIES.map((c) => [c.key, mean(present(visits.map((v) => v[c.key])))]),
   )
+}
+
+// Two people in one country, so a single display currency is enough.
+const priceFormat = new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' })
+
+export function formatPrice(value) {
+  return value == null ? '–' : priceFormat.format(value)
+}
+
+/** Parses what someone typed ("5.5", "$5.50", "5,50"): a number, null if blank, NaN if invalid. */
+export function parsePrice(text) {
+  const cleaned = text.replace(/[^\d.,]/g, '').replace(',', '.')
+  if (!cleaned) return text.trim() ? NaN : null
+  const n = Number(cleaned)
+  return Number.isFinite(n) && n >= 0 && n < 10000 ? Math.round(n * 100) / 100 : NaN
 }
 
 export function formatRating(value) {

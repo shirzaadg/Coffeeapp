@@ -259,6 +259,28 @@ code {
   gap: 12px;
 }
 
+.price-row {
+  grid-template-columns: 1fr 7.5rem;
+}
+
+.money-input {
+  position: relative;
+  display: block;
+}
+
+.money-input > span {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.money-input input {
+  padding-left: 26px;
+}
+
 .field-label {
   font-size: 0.85rem;
   font-weight: 600;
@@ -458,21 +480,29 @@ fieldset {
 
 .breakdown {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 6px;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
   margin: 0;
 }
 
 .breakdown-item {
-  padding: 6px 4px;
+  min-width: 0;
+  padding: 6px 2px;
   border-radius: 8px;
   background: var(--surface-2);
   text-align: center;
 }
 
 .breakdown dt {
-  font-size: 0.7rem;
+  overflow: hidden;
+  font-size: 0.65rem;
   color: var(--muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.breakdown abbr {
+  text-decoration: none;
 }
 
 .breakdown dd {

@@ -5,6 +5,7 @@ import RatingBadge from '../components/RatingBadge'
 import StarRating from '../components/StarRating'
 import { EmptyState, ErrorBanner, Spinner } from '../components/Status'
 import { useShops } from '../data/shopsContext'
+import { formatPrice } from '../lib/ratings'
 
 function byRating(a, b) {
   if (a.average == null && b.average == null) return a.name.localeCompare(b.name)
@@ -55,6 +56,7 @@ export default function ShopList() {
                   <StarRating value={shop.average} size="sm" />
                   <span className="muted small">
                     {shop.visitCount} visit{shop.visitCount === 1 ? '' : 's'}
+                    {shop.averagePrice != null && <> · avg. {formatPrice(shop.averagePrice)}</>}
                   </span>
                 </div>
                 {shop.visitCount > 0 && <CategoryBreakdown averages={shop.categories} />}

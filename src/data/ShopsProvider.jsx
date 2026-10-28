@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { fetchShops } from '../lib/api'
-import { categoryAverages, shopAverage } from '../lib/ratings'
+import { categoryAverages, mean, shopAverage } from '../lib/ratings'
 import { ShopsContext } from './shopsContext'
 
 function enrich(shop) {
@@ -9,6 +9,7 @@ function enrich(shop) {
     average: shopAverage(shop.visits),
     categories: categoryAverages(shop.visits),
     visitCount: shop.visits.length,
+    averagePrice: mean(shop.visits.filter((v) => v.price_paid != null).map((v) => Number(v.price_paid))),
   }
 }
 

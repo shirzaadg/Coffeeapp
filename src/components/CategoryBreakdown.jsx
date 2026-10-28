@@ -5,7 +5,9 @@ export default function CategoryBreakdown({ averages }) {
     <dl className="breakdown">
       {CATEGORIES.map((c) => (
         <div key={c.key} className="breakdown-item">
-          <dt>{c.label}</dt>
+          <dt>
+            {c.short ? <abbr title={c.label}>{c.short}</abbr> : c.label}
+          </dt>
           <dd>{formatRating(averages[c.key])}</dd>
         </div>
       ))}

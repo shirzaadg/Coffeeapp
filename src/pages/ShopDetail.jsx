@@ -9,7 +9,7 @@ import { useShops } from '../data/shopsContext'
 import { deleteVisit } from '../lib/api'
 import { formatDate } from '../lib/dates'
 import { googleMapsUrl } from '../lib/google'
-import { CATEGORIES, formatRating, visitOverall } from '../lib/ratings'
+import { CATEGORIES, formatPrice, formatRating, visitOverall } from '../lib/ratings'
 
 function newestFirst(a, b) {
   return b.visit_date.localeCompare(a.visit_date) || b.created_at.localeCompare(a.created_at)
@@ -43,6 +43,7 @@ function VisitCard({ visit }) {
           <p className="muted small">
             {formatDate(visit.visit_date)}
             {visit.drink_ordered && <> · {visit.drink_ordered}</>}
+            {visit.price_paid != null && <> · {formatPrice(Number(visit.price_paid))}</>}
           </p>
         </div>
         <RatingBadge value={visitOverall(visit)} />
@@ -131,6 +132,7 @@ export default function ShopDetail() {
             <StarRating value={shop.average} />
             <p className="muted small">
               {shop.visitCount} visit{shop.visitCount === 1 ? '' : 's'}
+              {shop.averagePrice != null && <> · avg. paid {formatPrice(shop.averagePrice)}</>}
             </p>
           </div>
         </div>
