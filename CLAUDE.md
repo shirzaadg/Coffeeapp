@@ -28,7 +28,7 @@ Mobile-first PWA for two people (no auth, no users table) to log coffee shop vis
 
 ## Supabase
 
-Schema, RLS policies and storage bucket are in `supabase/schema.sql` (run manually in the Supabase SQL editor; there is no migration tooling). With no auth, the anon role has select/insert/update/delete on both tables (and insert/select/delete on the photo bucket) — anyone with the site URL can edit or delete.
+Schema, RLS policies and storage bucket are in `supabase/schema.sql`, which must stay the full, re-runnable source of truth. There's no migration tooling in the repo: apply changes to the live project with the Supabase connector's `apply_migration` (or the dashboard SQL editor), mirror them in `schema.sql`, and apply them *before* deploying code that depends on them. With no auth, the anon role has select/insert/update/delete on both tables (and insert/select/delete on the photo bucket) — anyone with the site URL can edit or delete.
 
 ## PWA
 
